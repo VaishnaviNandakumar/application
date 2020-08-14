@@ -37,9 +37,6 @@ augmentation_techniques_pool = {
 
 def Cutout(img , cfg):
     """
-    Mask random part of image with black pixels
-    https://arxiv.org/pdf/1708.04552.pdf
-    
     Arguments:
         img {[numpy array]} -- [input image]
         cfg {[configuration file]} -- [description]
@@ -96,8 +93,6 @@ def apply_op(image, op):
 def augment_and_mix(image,augs,cfg):
     
     """
-    Augmix - https://arxiv.org/abs/1912.02781
-    
     Arguments:
         image {[numpy array]} -- []
         augs {[list of function(augmentations)]} -- [List of all augmentations applied to dataset]
@@ -109,10 +104,6 @@ def augment_and_mix(image,augs,cfg):
         tranform {[torchvision.compose]} -- [Pytorch transform for normalization]                   
     Returns:
         [torch tensor] -- [Transformed and normalized image]
-    """
-        
-    
-    """TODO: See what to do with transform function used(We will probably pass it as a parameter in augmix and create it in init of dataloader)
     """
 
     width = cfg.dataset.augmentation.augmix.width

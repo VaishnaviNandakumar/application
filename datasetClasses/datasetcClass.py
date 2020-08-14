@@ -28,7 +28,8 @@ config = {
                     'depth': 1,
                     'alph': 1.
                   },
-        "techniques": {"RandomBrightnessContrast":"true", 
+        "techniques": {
+                    "RandomBrightnessContrast":"true", 
                     "Blur":"true", 
                     "OpticalDistortion":"true", 
                     "ImageCompression":"false",
@@ -56,17 +57,13 @@ augs = {
 class classDataset(Dataset):
     
     def __init__(self, cfg, augmentation_list):  
+       
         """
-        
-        Single format used, cfg file will contain directory of csv files        . 
         Format of csv file:
         It contains 3 columns
         1. Path to image
-        2. Label of image (in string human readable)
-        3. Encoded label of image (number between 0-(n-1)) (n is number of classes)
-        
-        Arguments:
-            cfg {[]} -- [Configuration file]
+        2. Label of image (String i.e Human Readable Form)
+        3. Encoded label 
         """     
            
         self.csv_file = pd.read_csv(os.path.join(cfg.dataset.csvpath,mode+'.csv')).iloc[:,:].values
@@ -85,17 +82,17 @@ class classDataset(Dataset):
             
             
     def __len__(self): 
-        """returns length of CSV file"""
         return len(self.csv_file)
 
     def __getitem__(self,idx):  
         image = cv2.resize(cv2.imread(self.csv_file[idx,0]),(self.cfg.dataset.width,self.cfg.dataset.height))
         if(self.mode == 'train'):
+            
             if(self.cfg.dataset.augmentation.augmix.val):
                 image = augment_and_mix(image,self.augmentation_list,self.cfg)
             else:
                 image = normalize(apply_op(image , self.augmentation_list),self.cfg)
-                
+
             if(self.cfg.dataset.augmentation.cutout.val):
                 apply_cutout = np.random.randint(0,2)
                 if(apply_cutout == 1):

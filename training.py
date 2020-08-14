@@ -18,13 +18,6 @@ from dataset.datasetcClass import classDataset
 from torch.utils.data import DataLoader
 from model import Classifier
 
-# /**
-# * TODO: 1. Add code for model debugging and visualization
-# * TODO: 2. Add code for confusion matrix plot
-# * TODO: 3. Add learning rate schedulers
-# * TODO: 4. Add resume capability
-# */
-
 def train_epoch(epoch, data_loader, model, criterion , optimizer , cfg):
     
     """
@@ -42,10 +35,13 @@ def train_epoch(epoch, data_loader, model, criterion , optimizer , cfg):
     accuracies = AverageMeter()
     
     for i, sample in enumerate(data_loader):
+
         inputs = sample['image'].type(torch.FloatTensor)
         if(i == 0):
             wandb.log({"examples": [wandb.Image(wandb_plot(inputs[0],cfg), caption="Label")]})
         targets = sample['label']
+
+
         if torch.cuda.is_available():
             targets = targets.cuda()
             inputs = inputs.cuda()           
@@ -55,12 +51,7 @@ def train_epoch(epoch, data_loader, model, criterion , optimizer , cfg):
         acc = calculate_accuracy(outputs, targets)
         losses.update(loss.item(), inputs.size(0))
         accuracies.update(acc, inputs.size(0))
-        
-        #add different learning rate schedulers
-        # if(cfg.train.onecycle):
-        #     lr,_ = onecyc.calc()
-        #     update_lr(optimizer, lr)
-        
+    
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -164,13 +155,13 @@ def main():
     cfg.merge_from_list(['train.config_path',args.config_path,'dataset.csvpath',args.dataset_csvpath,'train.ckpt_save_dir',args.ckpt_save_dir])
     cfg.freeze()
     print(cfg)
+
     ####### Wandb
     os.makedirs(args.ckpt_save_dir,exist_ok = True)
     os.system('wandb login {}'.format(args.wandbkey))
     wandb.init(name = args.wandbexperiment,project= args.wandbproject,config = cfg)
     wandb.save(args.config_path) # Save configuration file on wandb
 
-    ################################################################
     validate = False
     if(os.path.exists(os.path.join(args.dataset_csvpath,'valid.csv'))):
         validate = True
@@ -187,8 +178,7 @@ def main():
                                 shuffle = cfg.dataset.shuffle, 
                                 num_workers = cfg.dataset.num_workers)
     
-    ################################################################
-
+    
     model = Classifier(cfg)
     if(torch.cuda.is_available()):
         model.cuda()
@@ -203,7 +193,7 @@ def main():
         optimizer.load_state_dict(old_dict['optim_dict'])
         start_epoch = old_dict['epoch']
         
-    #################################################################
+   
     
     for epoch in range(start_epoch,cfg.train.n_epochs):
         train_epoch(epoch, train_loader, model,criterion,optimizer,cfg)
@@ -215,5 +205,7 @@ def main():
     if(cfg.train.tune.val):
         set_lr(optimizer,lr = cfg.optimizer.lr/cfg.train.tune.lr_factor)
         train_epoch(epoch + 1, train_loader, model , criterion , optimizer, cfg)
+
+        
 if __name__ == '__main__':
     main()
